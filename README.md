@@ -1,4 +1,4 @@
-<h3>Add Codes to BLM,/h3>
+<h3>Add Codes to BLM</h3>
 
 <p>Read in a blm.csv file -- a Binary Link Matrix (BLM)
 (https://github.com/steve9000gi/binary-link-matrix) that
