@@ -26,8 +26,10 @@ print(paste("inputBLMFileName: ", inputBLMFileName, "; outputCBLMFileName: ",
       outputCBLMFileName))
 
 sortedList = fromJSON(inputSortFileName)
+options(stringsAsFactors=FALSE)
+blm = read.csv(inputBLMFileName, header = TRUE, sep = "\t", quote = "");
 
-n=names(sortedList)
+n = names(sortedList)
 
 for (i in 1:length(sortedList)) {
   code = n[i]
@@ -37,3 +39,6 @@ for (i in 1:length(sortedList)) {
   }
 } 
 
+for (i in 1:length(blm[,4])) {
+  print(paste(i, blm[i,4]))
+}
