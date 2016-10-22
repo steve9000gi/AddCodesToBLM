@@ -30,15 +30,28 @@ options(stringsAsFactors=FALSE)
 blm = read.csv(inputBLMFileName, header = TRUE, sep = "\t", quote = "");
 
 n = names(sortedList)
-
+revL = list() # reverse list: key is node name, value is associated code
 for (i in 1:length(sortedList)) {
   code = n[i]
   l = as.list(sortedList[code][[1]])
   for (j in 1:length(l)) {
-    print(paste(code, ": ", l[j]), sep = "")
+    print(paste(code, ": ", l[[j]], "; ", class(l[[j]])), sep = "")
+    revL[l[[j]]] = code;
   }
 } 
 
+revNames = names(revL)
+for (i in 1:length(revL)) {
+  print(paste(revNames[i], ": ", revL[[i]]));
+  #print(revL[[i]]);
+}
+
+codeList = c()
 for (i in 1:length(blm[,4])) {
-  print(paste(i, blm[i,4]))
+  codeList[[i]] = revL[[blm[i,4]]]
+  print(paste(i, blm[i,4], class(blm[i,4])))
+}
+
+for (i in 1:length(codeList)) {
+  print(codeList[[i]])
 }
