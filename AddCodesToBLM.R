@@ -1,4 +1,3 @@
-#234567890#234567890#234567890#234567890#234567890#234567890#234567890#234567890 (80 chars)
 # Read in a blm.csv file -- a Binary Link Matrix (BLM)
 # (https://github.com/steve9000gi/binary-link-matrix) that
 # represents the connectivity between nodes in a System Support Map (SSM)
@@ -22,53 +21,45 @@ inputSortFileName = args[6]
 inputBLMFileName = args[7]
 outputCBLMFileName = args[8]
 
-print(paste("inputBLMFileName: ", inputBLMFileName, "; outputCBLMFileName: ",
-      outputCBLMFileName))
-
-options(stringsAsFactors=FALSE)
+options(stringsAsFactors = FALSE)
 sortedList = fromJSON(inputSortFileName)
 blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
 
-n = names(sortedList)
-revL = list() # reverse list: key is node name, value is associated code
+# In order to access each code as the value associated with its node name, build
+# an "inverse list," where the key is the node name, and the value is the code:
+n = names(sortedList) # these are the codes
+inverseList = list() 
 for (i in 1:length(sortedList)) {
   code = n[i]
   l = as.list(sortedList[code][[1]])
   for (j in 1:length(l)) {
-#    print(paste(code, ": ", l[[j]], "; ", class(l[[j]])), sep = "")
-    revL[l[[j]]] = code;
+    inverseList[l[[j]]] = code;
   }
 } 
 
-revNames = names(revL)
-for (i in 1:length(revL)) {
-#  print(paste(revNames[i], ": ", revL[[i]]));
-  #print(revL[[i]]);
+# Build a list of codes with each element in the same position as its
+# corresponding node name row in the input BLM:
+nodeNameColNum = 4 # the column number for node names in the input BLM
+codes = c("Code") # For our purposes each column header is just another string
+for (i in 2:length(blm[,nodeNameColNum])) {
+  codes[[i]] = inverseList[[blm[i,nodeNameColNum]]]
 }
 
-codes = c("Code")
-for (i in 2:length(blm[,4])) {
-  codes[[i]] = revL[[blm[i,4]]]
-#  print(paste(i, blm[i,4], class(blm[i,4])))
-}
-
+# Add the ith column to be written to file as the ith element in list "outList":
 nColsOut = dim(blm)[2] + 1
 nColsBefore = 4
 nColsAfter = dim(blm)[2] - nColsBefore
 codeColIx = nColsBefore + 1
-outList <- vector("list", nColsOut) 
-for (i in 1:nColsBefore) {
-  #outList[[i]] <- as.list(blm[,i])
+outList <- vector("list", nColsOut)
+for (i in 1:nColsBefore) { # Copy the preceding columns from the BLM
   outList[[i]] <- blm[,i]
 }
-#outList[[codeColIx]] = as.list(codes)
-outList[[codeColIx]] = codes
-for (i in (codeColIx + 1):nColsOut) {
-  #outList[[i]] <- as.list(blm[,(i - 1)])
+outList[[codeColIx]] = codes # Insert the new column of codes
+for (i in (codeColIx + 1):nColsOut) { # Copy the remaining columns from the BLM
   outList[[i]] <- blm[,(i - 1)]
 }
-outList[[1]][[1]] = ""
-do.call(cbind, outList) 
+
+devNull = do.call(cbind, outList) 
 
 write.table(outList, 
             file = outputCBLMFileName,
@@ -76,4 +67,5 @@ write.table(outList,
             quote = FALSE, 
             sep = "\t", 
             row.names = FALSE, 
-            col.names = FALSE)
+            col.names = FALSE,
+            na = "")
