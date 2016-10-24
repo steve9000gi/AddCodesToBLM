@@ -22,44 +22,58 @@ inputBLMFileName = args[7]
 outputCBLMFileName = args[8]
 
 options(stringsAsFactors = FALSE)
-sortedList = fromJSON(inputSortFileName)
 blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
 
 # In order to access each code as the value associated with its node name, build
-# an "inverse list," where the key is the node name, and the value is the code:
-n = names(sortedList) # these are the codes
-inverseList = list() 
-for (i in 1:length(sortedList)) {
-  code = n[i]
-  l = as.list(sortedList[code][[1]])
-  for (j in 1:length(l)) {
-    inverseList[l[[j]]] = code;
-  }
-} 
+# an "inverse list," where the key is the node name, and the value is the code.
+buildInverseList = function(inputSortFileName) {
+  sortedList = fromJSON(inputSortFileName)
+  n = names(sortedList) # these are the codes
+  inverseList = list() 
+  for (i in 1:length(sortedList)) {
+    code = n[i]
+    l = as.list(sortedList[code][[1]])
+    for (j in 1:length(l)) {
+      inverseList[l[[j]]] = code;
+    }
+  } 
+  return (inverseList)
+}
 
 # Build a list of codes with each element in the same position as its
-# corresponding node name row in the input BLM:
-nodeNameColNum = 4 # the column number for node names in the input BLM
-codes = c("Code") # For our purposes each column header is just another string
-for (i in 2:length(blm[,nodeNameColNum])) {
-  codes[[i]] = inverseList[[blm[i,nodeNameColNum]]]
+# corresponding node name row in the input BLM.
+buildOrderedCodeList = function(inverseList, blm) {
+  nodeNameColNum = 4 # the column number for node names in the input BLM
+  codes = c("Code") # For our purposes each column header is just another string
+  for (i in 2:length(blm[,nodeNameColNum])) {
+    codes[[i]] = inverseList[[blm[i,nodeNameColNum]]]
+  }
+  return (codes)
 }
 
-# Add the ith column to be written to file as the ith element in list "outList":
-nColsOut = dim(blm)[2] + 1
-nColsBefore = 4
-nColsAfter = dim(blm)[2] - nColsBefore
-codeColIx = nColsBefore + 1
-outList <- vector("list", nColsOut)
-for (i in 1:nColsBefore) { # Copy the preceding columns from the BLM
-  outList[[i]] <- blm[,i]
-}
-outList[[codeColIx]] = codes # Insert the new column of codes
-for (i in (codeColIx + 1):nColsOut) { # Copy the remaining columns from the BLM
-  outList[[i]] <- blm[,(i - 1)]
+# Add the ith column to be written to file as the ith element in list "outList".
+buildOutList = function(blm, orderedCodeList) {
+  nColsOut = dim(blm)[2] + 1
+  nColsBefore = 4
+  nColsAfter = dim(blm)[2] - nColsBefore
+  codeColIx = nColsBefore + 1
+  outList <- vector("list", nColsOut)
+  for (i in 1:nColsBefore) { # Copy the preceding columns from the BLM
+    outList[[i]] <- blm[,i]
+  }
+  outList[[codeColIx]] = orderedCodeList # Insert the new column of codes
+  for (i in (codeColIx + 1):nColsOut) {  # Copy remaining columns from the BLM
+    outList[[i]] <- blm[,(i - 1)]
+  }
+  devNull = do.call(cbind, outList) 
+  return (outList)
 }
 
-devNull = do.call(cbind, outList) 
+# main:
+
+inverseList = buildInverseList(inputSortFileName)
+orderedCodeList = buildOrderedCodeList(inverseList, blm)
+outList = buildOutList(blm, orderedCodeList)
 
 write.table(outList, 
             file = outputCBLMFileName,
