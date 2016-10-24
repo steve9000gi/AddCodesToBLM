@@ -34,7 +34,7 @@ buildInverseList = function(inputSortFileName) {
 
 # Build a list of codes with each element in the same position as its
 # corresponding node name row in the input BLM.
-buildOrderedCodeList = function(inverseList, blm) {
+buildOrderedCodeList = function(blm, inverseList) {
   nodeNameColNum = 4 # the column number for node names in the input BLM
   codes = c("Code") # For our purposes each column header is just another string
   for (i in 2:length(blm[,nodeNameColNum])) {
@@ -72,7 +72,7 @@ options(stringsAsFactors = FALSE)
 blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
 
 inverseList = buildInverseList(inputSortFileName)
-orderedCodeList = buildOrderedCodeList(inverseList, blm)
+orderedCodeList = buildOrderedCodeList(blm, inverseList)
 outList = buildOutList(blm, orderedCodeList)
 
 write.table(outList, 
