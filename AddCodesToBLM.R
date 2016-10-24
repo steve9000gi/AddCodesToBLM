@@ -16,14 +16,6 @@ library(methods)
 library(tools)
 library(jsonlite)
 
-args = commandArgs()
-inputSortFileName = args[6]
-inputBLMFileName = args[7]
-outputCBLMFileName = args[8]
-
-options(stringsAsFactors = FALSE)
-blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
-
 # In order to access each code as the value associated with its node name, build
 # an "inverse list," where the key is the node name, and the value is the code.
 buildInverseList = function(inputSortFileName) {
@@ -70,6 +62,14 @@ buildOutList = function(blm, orderedCodeList) {
 }
 
 # main:
+
+args = commandArgs()
+inputSortFileName = args[6]
+inputBLMFileName = args[7]
+outputCBLMFileName = args[8]
+
+options(stringsAsFactors = FALSE)
+blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
 
 inverseList = buildInverseList(inputSortFileName)
 orderedCodeList = buildOrderedCodeList(inverseList, blm)
