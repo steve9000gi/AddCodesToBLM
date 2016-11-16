@@ -110,6 +110,21 @@ buildCBLM = function(blm, orderedCodeList) {
   return (cblm)
 }
 
+makeCLBMFile = function(invertingLists, inputBLMFileName, outputCBLMFileName) {
+  options(stringsAsFactors = FALSE)
+  blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
+  orderedCodeList = buildOrderedCodeList(blm, invertingLists)
+  cblm = buildCBLM(blm, orderedCodeList)
+  write.table(cblm,
+	      file = outputCBLMFileName,
+	      append = FALSE,
+	      quote = FALSE,
+	      sep = "\t",
+	      row.names = FALSE,
+	      col.names = FALSE,
+	      na = "")
+}
+
 # main:
 
 args = commandArgs()
@@ -117,20 +132,5 @@ inputSortFileName = args[6]
 inputBLMFileName = args[7]
 outputCBLMFileName = args[8]
 
-options(stringsAsFactors = FALSE)
-blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
-
 invertingLists = buildInvertingLists(inputSortFileName)
-orderedCodeList = buildOrderedCodeList(blm, invertingLists)
-cblm = buildCBLM(blm, orderedCodeList)
-print(paste("class(blm): ", class(blm), "; dim(blm): ", dim(blm), sep = ""))
-print(paste("class(cblm): ", class(cblm), "; dim(cblm): ", dim(cblm), sep = ""))
-
-write.table(cblm, 
-            file = outputCBLMFileName,
-            append = FALSE, 
-            quote = FALSE, 
-            sep = "\t", 
-            row.names = FALSE, 
-            col.names = FALSE,
-            na = "")
+makeCLBMFile(invertingLists, inputBLMFileName, outputCBLMFileName)
