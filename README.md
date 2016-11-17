@@ -8,7 +8,7 @@ connectivity between nodes in a System Support Map (SSM)
 directory of SSMs, grouped by "codes" by a human being using the sort web page
 (http://syssci.renci.org/sort/).</p>
 
-<p>For each BLM file in path/to/BLMInputDir:/p>
+<p>For each BLM file in path/to/BLMInputDir:</p>
 
 <ol>
   <li>For each node in that BLM, find the code with which that node is
