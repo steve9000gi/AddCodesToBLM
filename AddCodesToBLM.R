@@ -1,15 +1,23 @@
-# Read in a blm.csv file -- a Binary Link Matrix (BLM)
-# (https://github.com/steve9000gi/binary-link-matrix) that
-# represents the connectivity between nodes in a System Support Map (SSM)
-# (http://syssci.renci.org/ssm/). Then read in a sortedList.json file
+# Read in a directory of *BLM.csv files. Each Binary Link Matrix (BLM)
+# (https://github.com/steve9000gi/binary-link-matrix) represents the
+# connectivity between nodes in a System Support Map (SSM)
+# (http://syssci.renci.org/ssm/). Also read in a SortedItems.json file
 # (https://github.com/steve9000gi/sort), which contains node names from a
-# directory of SSMs, grouped by "codes" by an individual using the sort web page
-# (http://syssci.renci.org/sort/). For each node in the BLM, find the code with 
-# which it's associated and add that code to a new column. Output a Coded BLM
-# (CBLM) file which is identical to the BLM file that was originally read in,
-# except with the addition of the new column of codes.
+# directory of SSMs, grouped by "codes" by a human being using the sort web page
+# (http://syssci.renci.org/sort/).
 #
-# Usage: RScript /path/to/AddCodesToBLM.R SortInfile BLMInfile CBLMoutfile
+# For each BLM file in path/to/BLMInputDir:
+#   1) For each node in that BLM, find the code with which that node is
+#      associated (in the SortedItems.json input file, the keys are "codes" and 
+#      the values are "node names") and add that code to a new column;
+#   2) Output a Coded BLM (CBLM) file to /path/to/CBLMOutputDir which is
+#      identical to its corresponding BLM file, except with the addition of
+#      the new column of codes.
+#
+# Usage: RScript /path/to/AddCodesToBLM.R 
+#                /path/to/SortedItems.json
+#                /path/to/BLMInputDir
+#                /path/to/CBLMOutputDir
 #
 
 library(methods)
@@ -41,8 +49,8 @@ library(jsonlite)
 # are likely to include white space and other characters that are illegal for
 # keys in R associative arrays. Yes, you can surround the string with backticks,
 # but I've been unsuccessful in doing so programmatically.
-buildInvertingLists = function(inputSortFileName) {
-  sortedList = fromJSON(inputSortFileName)
+buildInvertingLists = function(inputSortFilePath) {
+  sortedList = fromJSON(inputSortFilePath)
   n = names(sortedList) # these are the codes
   orderedNameList = list()
   orderedValueList = list()
@@ -82,8 +90,8 @@ buildOrderedCodeList = function(blm, invertingLists) {
     if (found) {
       found = FALSE
     } else {
-      print(paste("Failed to find code for '", blm[i,nodeNameColNum], "'",
-            sep = ""))
+      write(paste("No code for '", blm[i,nodeNameColNum], "'", sep = ""),
+            stderr())
       codesOut[i] = ""
     }
   }
@@ -110,13 +118,13 @@ buildCBLM = function(blm, orderedCodeList) {
   return (cblm)
 }
 
-makeCLBMFile = function(invertingLists, inputBLMFileName, outputCBLMFileName) {
+makeCLBMFile = function(invertingLists, inputBLMFilePath, outputCBLMFilePath) {
   options(stringsAsFactors = FALSE)
-  blm = read.csv(inputBLMFileName, header = FALSE, sep = "\t", quote = "");
+  blm = read.csv(inputBLMFilePath, header = FALSE, sep = "\t", quote = "");
   orderedCodeList = buildOrderedCodeList(blm, invertingLists)
   cblm = buildCBLM(blm, orderedCodeList)
   write.table(cblm,
-	      file = outputCBLMFileName,
+	      file = outputCBLMFilePath,
 	      append = FALSE,
 	      quote = FALSE,
 	      sep = "\t",
@@ -125,12 +133,37 @@ makeCLBMFile = function(invertingLists, inputBLMFileName, outputCBLMFileName) {
 	      na = "")
 }
 
+# The CBLM file gets the path to the CBLM output directory plus the same name
+# as the BLM input file except there's a 'C' inserted just before "BLM.csv".
+# Assumes that the input file name ends with "-BLM.csv".
+generateOutputCBLMFilePath = function(inputFilePath, outputDirectoryPath) {
+  inputFileName = strsplit(inputFilePath, "/")[[1]] # Remove path, if any.
+  inFNameSplit = strsplit(inputFileName, "-BLM")
+  outputCBLMFilePath = paste0(outputDirectoryPath, "/", inFNameSplit[[1]][1],
+                              "-CBLM.csv", collapse = "")
+  return (outputCBLMFilePath)
+}
+
+
 # main:
 
 args = commandArgs()
-inputSortFileName = args[6]
-inputBLMFileName = args[7]
-outputCBLMFileName = args[8]
+inputSortFilePath = args[6]
+inputBLMDir = args[7]
+outputCBLMDir = args[8]
 
-invertingLists = buildInvertingLists(inputSortFileName)
-makeCLBMFile(invertingLists, inputBLMFileName, outputCBLMFileName)
+invertingLists = buildInvertingLists(inputSortFilePath)
+
+setwd(inputBLMDir)
+inputFiles = list.files(path = inputBLMDir, pattern = "*-BLM.csv")
+dir.create(outputCBLMDir, showWarnings = FALSE)
+nInputFiles = length(inputFiles)
+write(paste("Number of BLM input files:", nInputFiles), stdout())
+
+for (i in 1:nInputFiles) {
+  outputCBLMFilePath = generateOutputCBLMFilePath(inputFiles[i], outputCBLMDir)
+  write(paste(i, ": ", inputFiles[i], " -> ", outputCBLMFilePath, sep = ""),
+        stdout()) 
+  makeCLBMFile(invertingLists, inputFiles[i], outputCBLMFilePath)
+}
+
