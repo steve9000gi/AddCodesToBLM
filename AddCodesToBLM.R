@@ -55,10 +55,15 @@ buildInvertingLists = function(inputSortFilePath) {
   orderedNameList = list()
   orderedValueList = list()
   orderedListCount = 1
+  #write(paste("length(sortedList):", length(sortedList)), stdout())
   for (i in 1:length(sortedList)) {
     code = n[i]
     vals = as.list(sortedList[code][[1]]) # list of values for current code
+    numVals = length(vals)
+    #print(vals, row.names = FALSE)
+    if (numVals == 0) next # Don't try processing empty list
     for (j in 1:length(vals)) {
+      #write(paste(i, ", ", j, sep = ""), stdout()) 
       orderedNameList[orderedListCount] = code;
       orderedValueList[orderedListCount] = vals[[j]]
       orderedListCount = orderedListCount + 1
