@@ -50,7 +50,8 @@ library(jsonlite)
 # keys in R associative arrays. Yes, you can surround the string with backticks,
 # but I've been unsuccessful in doing so programmatically.
 buildInvertingLists = function(inputSortFilePath) {
-  sortedList = fromJSON(inputSortFilePath)
+  sortOutputList = fromJSON(inputSortFilePath)
+  sortedList = sortOutputList$sorted
   n = names(sortedList) # these are the codes
   orderedNameList = list()
   orderedValueList = list()
