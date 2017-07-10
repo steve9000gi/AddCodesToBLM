@@ -50,6 +50,42 @@ library(jsonlite)
 # keys in R associative arrays. Yes, you can surround the string with backticks,
 # but I've been unsuccessful in doing so programmatically.
 buildInvertingLists = function(inputSortFilePath) {
+  #sortOutputList = fromJSON(inputSortFilePath)
+  #sortedList = sortOutputList$sorted
+  #n = names(sortedList) # these are the codes
+
+  json = fromJSON(inputSortFilePath,
+                 simplifyVector = FALSE,
+                 simplifyDataFrame = TRUE)
+  sorted = json$sorted
+  codes = sorted$title
+  orderedNameList = list()
+  orderedValueList = list()
+  orderedListCount = 1
+  #write(paste("length(sortedList):", length(sortedList)), stdout())
+  numCodes = length(codes)
+  for (i in 1:numCodes) { # for each code
+    code = codes[i]
+    vals = as.list(sorted$textItems[[i]][[1]]) # values for current code
+    numVals = length(vals)
+    print("Current values:")
+    print(vals, row.names = FALSE)
+    if (numVals == 0) next # Don't try processing empty list
+    for (j in 1:numVals) { # for each text item under the current code
+      write(paste(i, ", ", j, sep = ""), stdout()) 
+      orderedNameList[orderedListCount] = code;
+      orderedValueList[orderedListCount] = vals[[j]]
+      orderedListCount = orderedListCount + 1
+    }
+  }
+  print("orderedNameList")
+  print(orderedNameList, row.names = FALSE)
+  print("orderedValueList:")
+  print(orderedValueList, row.names = FALSE)
+  return (list(orderedNameList, orderedValueList))
+}
+
+buildInvertingListsOld = function(inputSortFilePath) {
   sortOutputList = fromJSON(inputSortFilePath)
   sortedList = sortOutputList$sorted
   n = names(sortedList) # these are the codes
@@ -87,6 +123,8 @@ buildOrderedCodeList = function(blm, invertingLists) {
     # codes[j]. If no match, print a warning and append an empty string.
     found = FALSE
     for (j in 1:length(nodeNames)) { 
+#       write(paste(blm[i,nodeNameColNum], " =?= ", nodeNames[j], ": ", (blm[i,nodeNameColNum] == nodeNames[j]), sep = ""), stderr())
+
       if (blm[i,nodeNameColNum] == nodeNames[j]) {
         codesOut[i] = codes[j]
         found = TRUE
