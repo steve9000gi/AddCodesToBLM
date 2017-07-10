@@ -49,11 +49,10 @@ library(jsonlite)
 # are likely to include white space and other characters that are illegal for
 # keys in R associative arrays. Yes, you can surround the string with backticks,
 # but I've been unsuccessful in doing so programmatically.
+#
+# NOTE: This function handles the new unified JSON file format as used by blm.R
+# and the sort website.
 buildInvertingLists = function(inputSortFilePath) {
-  #sortOutputList = fromJSON(inputSortFilePath)
-  #sortedList = sortOutputList$sorted
-  #n = names(sortedList) # these are the codes
-
   json = fromJSON(inputSortFilePath,
                  simplifyVector = FALSE,
                  simplifyDataFrame = TRUE)
@@ -62,29 +61,22 @@ buildInvertingLists = function(inputSortFilePath) {
   orderedNameList = list()
   orderedValueList = list()
   orderedListCount = 1
-  #write(paste("length(sortedList):", length(sortedList)), stdout())
   numCodes = length(codes)
   for (i in 1:numCodes) { # for each code
     code = codes[i]
     vals = as.list(sorted$textItems[[i]][[1]]) # values for current code
     numVals = length(vals)
-    print("Current values:")
-    print(vals, row.names = FALSE)
-    if (numVals == 0) next # Don't try processing empty list
-    for (j in 1:numVals) { # for each text item under the current code
-      write(paste(i, ", ", j, sep = ""), stdout()) 
+    if (numVals == 0) next # Don't try processing an empty list.
+    for (j in 1:numVals) { # for each text item belonging to the current code
       orderedNameList[orderedListCount] = code;
       orderedValueList[orderedListCount] = vals[[j]]
       orderedListCount = orderedListCount + 1
     }
   }
-  print("orderedNameList")
-  print(orderedNameList, row.names = FALSE)
-  print("orderedValueList:")
-  print(orderedValueList, row.names = FALSE)
   return (list(orderedNameList, orderedValueList))
 }
 
+# Keeping around the version that handles the old, simpler JSON format.
 buildInvertingListsOld = function(inputSortFilePath) {
   sortOutputList = fromJSON(inputSortFilePath)
   sortedList = sortOutputList$sorted
