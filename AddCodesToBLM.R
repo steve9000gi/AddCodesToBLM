@@ -182,11 +182,25 @@ generateOutputCBLMFilePath = function(inputFilePath, outputDirectoryPath) {
 
 
 # main:
+args = commandArgs(trailingOnly = TRUE)
 
-args = commandArgs()
-inputSortFilePath = args[6]
-inputBLMDir = args[7]
-outputCBLMDir = args[8]
+if (length(args) < 3) {
+  write("usage: RScript AddCodesToBLM.R /path/to/SortedItems.json /path/to/BLMInputDir /path/to/CBLMOutputDir", stdout())
+  stop("Too few arguments")
+}
+
+inputSortFilePath = args[1]
+if (!file.exists(inputSortFilePath)) {
+  stop(paste0("Sorted input file \"", inputSortFilePath, "\" not found"))
+}
+
+inputBLMDir = args[2]
+if (!dir.exists(inputBLMDir)) {
+  stop(paste0("BLM input directory \"", inputBLMDir, "\" not found"))
+}
+
+outputCBLMDir = args[3]
+dir.create(outputCBLMDir, showWarnings = FALSE)
 
 invertingLists = buildInvertingLists(inputSortFilePath)
 
