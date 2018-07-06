@@ -62,7 +62,9 @@ buildInvertingLists = function(inputSortFilePath) {
   orderedValueList = list()
   orderedListCount = 1
   numCodes = length(codes)
+  cat(noquote(paste("numCodes: ", toString(numCodes), "\n", sep = "")))
   for (i in 1:numCodes) { # for each code
+    cat(noquote(paste("i = ", toString(i), "; code: ", codes[i], "\n", sep = "")))
     code = codes[i]
     vals = as.list(sorted$textItems[[i]][[1]]) # values for current code
     numVals = length(vals)
